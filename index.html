@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck of Cards Viewer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: url("images/bg.jpg") no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.6); 
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 300px;
+            color: #ffffff;
+        }
+
+        .container:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
+        }
+
+        .card-list {
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #ffffff;
+        }
+
+        .card-item {
+            margin-bottom: 10px;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff9800;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #e65100;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #ffcc80;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title" style="color: #ffcc80;">Random Card Generator</h1>
+        <div id="cardContainer" class="card-list"></div>
+        <button onclick="drawCard()">Draw a Card</button>
+    </div>
+
+    <footer>
+        Made by: <a href="#">Rosemarie Amores</a>
+    </footer>
+
+    <script>
+        let deckId = null;
+
+        async function initializeDeck() {
+            try {
+                const response = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
+                if (!response.ok) {
+                    throw new Error('Failed to initialize the deck.');
+                }
+
+                const data = await response.json();
+                deckId = data.deck_id;
+                console.log('Deck initialized with ID:', deckId);
+            } catch (error) {
+                console.error(error);
+                alert('Unable to initialize the deck. Please try again later.');
+            }
+        }
+
+        async function drawCard() {
+            try {
+                if (!deckId) {
+                    alert('Deck is not initialized yet. Please try again later.');
+                    return;
+                }
+
+                const response = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
+                if (!response.ok) {
+                    throw new Error('Failed to draw a card.');
+                }
+
+                const data = await response.json();
+                const cardContainer = document.getElementById('cardContainer');
+
+                if (data.cards.length > 0) {
+                    const card = data.cards[0];
+                    cardContainer.innerHTML = `<div class="card-item">
+                        <strong>${card.value} of ${card.suit}</strong><br>
+                        <img src="${card.image}" alt="${card.value} of ${card.suit}">
+                    </div>`;
+                } else {
+                    alert('No more cards to draw.');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Unable to draw a card. Please try again later.');
+            }
+        }
+
+        initializeDeck();
+    </script>
+    <script src="sw.js"></script>
+</body>
+</html>
